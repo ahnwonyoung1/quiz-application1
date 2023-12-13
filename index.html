@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: url(scenery.jpg);
+      padding-top: 120px;
+    }
+    
+    #quiz-container {
+      max-width: 1000px;
+      margin: auto;
+      box-shadow: 0 2px 10px whitesmoke;
+      background: rgb(135,254,255);
+      background: linear-gradient(0deg, rgba(135,254,255,1) 0%, rgba(210,223,246,1) 36%, rgba(229,215,243,1) 55%, rgba(255,204,240,1) 70%);
+      border-radius: 10px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+    }
+
+    #quiz-container .option {
+        position: relative;
+        z-index: 2;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option {
+      margin: 0 10px;
+      font-size: 30px;
+      border-radius: 10px;
+    }
+    
+
+    #next {
+        font-size: 20px;
+        margin-top: 20px;
+        border-radius: 10px;
+    }
+    #result {
+      margin-top: 30px;
+      font-weight: bold;
+    }
+
+    #timer {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    #restart {
+      margin-top: 20px;
+      font-weight: bold;
+      border-radius: 10px;
+      font-size: 20px;
+    }
+    @media only screen and (max-width: 600px) {
+            .option {
+                max-width: none;
+            }
+        }
+
+
+  </style>
+  <title>Quiz Application</title>
+</head>
+<body>
+
+<div id="quiz-container">
+  <div id="question-container" class="question"></div>
+  <div class="options">
+    <button class="option" onclick="checkAnswer(0)"></button>
+    <button class="option" onclick="checkAnswer(1)"></button>
+    <button class="option" onclick="checkAnswer(2)"></button>
+    <button class="option" onclick="checkAnswer(3)"></button>
+  </div>
+  <div id="result"></div>
+  <div id="timer"></div>
+  <button id="next" onclick="nextQuestion()">Next Question</button>
+  <button id="restart" onclick="restartQuiz()" style="display: none;">Restart Quiz</button>
+</div>
+
+<script>
+  const questions = [
+    {
+      question: "Which HTML tag is used to create an unordered list?",
+      options: ["<ol>", 
+                "<li>", 
+                "<ul>", 
+                "<list>"],
+      correctAnswer: 2
+    },
+    {
+      question: "Which attribute is used to provide alternative text for an image in HTML",
+      options: ["title", 
+                "alt", 
+                "src", 
+                "img-alt"],
+      correctAnswer: 1
+    },
+    {
+      question: "In HTML, which tag is used to define the structure of an HTML document, including the title and metadata?",
+      options: ["<header>", 
+                "<head>", 
+                "<meta>", 
+                "<body>"],
+      correctAnswer: 1
+    }
+  ];
+
+  let currentQuestion = 0;
+  let score = 0;
+
+  // Set the timer duration in seconds
+  let timerSeconds = 15; 
+  let timerInterval;
+
+  function loadQuestion() {
+    const questionContainer = document.getElementById('question-container');
+    const options = document.querySelectorAll('.option');
+
+    questionContainer.textContent = questions[currentQuestion].question;
+
+    options.forEach((option, index) => {
+      option.textContent = questions[currentQuestion].options[index];
+    });
+  }
+
+  function checkAnswer(optionIndex) {
+    clearInterval(timerInterval); // Stop the timer
+    const resultContainer = document.getElementById('result');
+    const options = document.querySelectorAll('.option');
+
+  options.forEach((option, index) => {
+    if (index === questions[currentQuestion].correctAnswer) {
+      option.style.backgroundColor = 'lightgreen'; // Correct answer green background
+    } else if (index === optionIndex) {
+      option.style.backgroundColor = 'lightcoral'; // Incorrectly answer red background
+    } else {
+      option.style.backgroundColor = ''; // Reset other options to default background
+    }
+
+    option.disabled = true; // Disable all options after an answer is selected
+  });
+
+    if (optionIndex === questions[currentQuestion].correctAnswer) {
+      resultContainer.textContent = 'Correct!';
+      score++;
+    } else {
+      resultContainer.textContent = 'Incorrect. The correct answer is ' + questions[currentQuestion].options[questions[currentQuestion].correctAnswer];
+    }
+
+    setTimeout(nextQuestion, 1000); // Delay next question for 1 second to display the result
+  }
+
+  function updateTimer() {
+    const timerContainer = document.getElementById('timer');
+    timerContainer.textContent = 'Time Left: ' + timerSeconds + 's';
+
+    if (timerSeconds === 0) {
+      clearInterval(timerInterval); // Stop the timer
+      checkAnswer(-1); // Auto-submit the answer when time runs out
+    }
+
+    timerSeconds--;
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(updateTimer, 1000); // Update the timer every second
+  }
+
+  function nextQuestion() {
+  const options = document.querySelectorAll('.option');
+
+  options.forEach((option) => {
+    option.style.backgroundColor = ''; // Reset background color
+    option.disabled = false; // Enable options for the next question
+  });
+
+  timerSeconds = 15; // Reset the timer for each question
+  startTimer(); // Start the timer for the next question
+
+  const resultContainer = document.getElementById('result');
+  resultContainer.textContent = ''; // Clear result message
+
+  if (currentQuestion < questions.length - 1) {
+    currentQuestion++;
+    loadQuestion();
+  } else {
+    // Display final score when all questions are answered
+    document.getElementById('question-container').textContent = 'Quiz completed!';
+    document.querySelector('.options').innerHTML = '';
+    resultContainer.textContent = 'Your Score: ' + score + ' out of ' + questions.length;
+
+    // Display the restart button
+    document.getElementById('restart').style.display = 'block';
+
+    clearInterval(timerInterval); // Stop the timer
+  }
+}
+
+  function restartQuiz() {
+  currentQuestion = 0;
+  score = 0;
+
+  const options = document.querySelectorAll('.option');
+
+  options.forEach((option) => {
+    option.style.backgroundColor = ''; // Reset background color
+    option.disabled = false; // Enable options for the next question
+  });
+
+  document.getElementById('question-container').textContent = '';
+  document.getElementById('result').textContent = '';
+  document.getElementById('timer').textContent = '';
+  document.getElementById('restart').style.display = 'none';
+
+  loadQuestion();
+  startTimer(); // Start the timer for the first question
+}
+
+  
+  // Initial load
+  loadQuestion();
+  startTimer(); // Start the timer for the first question
+</script>
+
+</body>
+</html>
